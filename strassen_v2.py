@@ -53,8 +53,8 @@ def partition(a):
     m = n // 2
 
     # Top left matrix
-    # a11 = [[a[i][j] for j in range(m)] for i in range(m)]
-    # a11 = [a[i][:m] for i in range(m)]
+    # a11 = [[a_1D[i][j] for j in range(m)] for i in range(m)]
+    # a11 = [a_1D[i][:m] for i in range(m)]
 
     a11 = []
     a12 = []
@@ -71,19 +71,19 @@ def partition(a):
 
 
     # Top right matrix
-    # a12 = [[a[i][j] for j in range(m, n)] for i in range(m)]
+    # a12 = [[a_1D[i][j] for j in range(m, n)] for i in range(m)]
 
-    # a12 = [a[i][m:n] for i in range(m)]
+    # a12 = [a_1D[i][m:n] for i in range(m)]
 
     # Bottom left matrix
-    # a21 = [[a[i][j] for j in range(m)] for i in range(m, n)]
+    # a21 = [[a_1D[i][j] for j in range(m)] for i in range(m, n)]
 
-    # a21 = [a[i][:m] for i in range(m, n)]
+    # a21 = [a_1D[i][:m] for i in range(m, n)]
 
     # Bottom right matrix
-    # a22 = [[a[i][j] for j in range(m, n)] for i in range(m, n)]
+    # a22 = [[a_1D[i][j] for j in range(m, n)] for i in range(m, n)]
 
-    # a22 = [a[i][m:n] for i in range(m, n)]
+    # a22 = [a_1D[i][m:n] for i in range(m, n)]
 
     return a11, a12, a21, a22
 
@@ -201,19 +201,23 @@ def run(d):
             row.append(random.randint(0, 2))
         b.append(row)
 
-    a = [[0, 1, 2, 2, 1, 2],
-         [2, 1, 0, 1, 1, 2],
-         [2, 2, 2, 1, 0, 2],
-         [1, 0, 2, 2, 0, 1],
-         [2, 1, 0, 1, 0, 1],
-         [2, 2, 1, 1, 0, 1]]
+    a = [[0, 1, 3, 2, 1, 2, 3, 1],
+         [2, 1, 0, 3, 1, 2, 3, 1],
+         [2, 3, 2, 1, 0, 2, 3, 1],
+         [1, 0, 2, 2, 3, 1, 3, 1],
+         [3, 1, 0, 1, 0, 1, 3, 1],
+         [2, 2, 1, 1, 0, 3, 3, 1],
+         [2, 1, 0, 3, 1, 2, 3, 1],
+         [2, 3, 2, 1, 0, 2, 3, 1]]
 
-    b = [[0, 1, 2, 1, 0, 0],
-         [1, 0, 2, 0, 1, 2],
-         [1, 0, 0, 1, 1, 2],
-         [1, 2, 1, 2, 2, 2],
-         [0, 2, 1, 2, 0, 0],
-         [0, 1, 1, 2, 2, 2]]
+    b = [[3, 1, 2, 1, 0, 3, 2, 0],
+         [1, 0, 3, 3, 1, 2, 2, 0],
+         [1, 3, 0, 1, 1, 3, 2, 0],
+         [3, 2, 1, 2, 3, 2, 2, 0],
+         [0, 3, 1, 2, 3, 0, 2, 0],
+         [3, 1, 1, 3, 2, 2, 2, 0],
+         [3, 1, 2, 1, 0, 3, 2, 0],
+         [1, 0, 3, 3, 1, 2, 2, 0]]
 
 
 

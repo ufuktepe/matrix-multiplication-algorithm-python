@@ -126,7 +126,7 @@ def strassenR(A, B):
         bResult = add(aResult, p6)  # p1 + p3 + p6
         c22 = subtract(bResult, p2)  # c22 = p1 + p3 - p2 + p6
 
-        # Grouping the results obtained in a single matrix:
+        # Grouping the results obtained in a_1D single matrix:
         C = [[0 for j in range(0, n)] for i in range(0, n)]
         for i in range(0, new_size):
             for j in range(0, new_size):
