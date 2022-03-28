@@ -37,7 +37,7 @@ def strassen_algorithm(x, y):
 
 if __name__ == "__main__":
 
-    x = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    y = np.array([[-1, 0, 0], [0, -1, 0], [0, 0, -1]])
+    x = np.array([[1, 2, 0, 2, 1], [0, 2, 1, 1, 1], [2, 1, 1, 2, 1], [2, 1, 1, 2, 1], [1, 2, 0, 2, 1]])
+    y = np.array([[2, 1, 2, 2, 1], [2, 2, 2, 1, 1], [1, 2, 1, 2, 1], [1, 2, 1, 2, 1], [2, 1, 2, 2, 1]])
     print('Matrix multiplication result: ')
     print(strassen_algorithm(x, y))

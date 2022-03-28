@@ -1,4 +1,6 @@
 import math
+import random
+import time
 
 
 def standard_matrix_multiply(a, b):
@@ -51,16 +53,37 @@ def partition(a):
     m = n // 2
 
     # Top left matrix
-    a11 = [[a[i][j] for j in range(m)] for i in range(m)]
+    # a11 = [[a[i][j] for j in range(m)] for i in range(m)]
+    # a11 = [a[i][:m] for i in range(m)]
+
+    a11 = []
+    a12 = []
+    a21 = []
+    a22 = []
+
+    for i in range(m):
+        a11.append(a[i][:m])
+        a12.append(a[i][m:n])
+
+    for i in range(m, n):
+        a21.append(a[i][:m])
+        a22.append(a[i][m:n])
+
 
     # Top right matrix
-    a12 = [[a[i][j] for j in range(m, n)] for i in range(m)]
+    # a12 = [[a[i][j] for j in range(m, n)] for i in range(m)]
+
+    # a12 = [a[i][m:n] for i in range(m)]
 
     # Bottom left matrix
-    a21 = [[a[i][j] for j in range(m)] for i in range(m, n)]
+    # a21 = [[a[i][j] for j in range(m)] for i in range(m, n)]
+
+    # a21 = [a[i][:m] for i in range(m, n)]
 
     # Bottom right matrix
-    a22 = [[a[i][j] for j in range(m, n)] for i in range(m, n)]
+    # a22 = [[a[i][j] for j in range(m, n)] for i in range(m, n)]
+
+    # a22 = [a[i][m:n] for i in range(m, n)]
 
     return a11, a12, a21, a22
 
@@ -70,10 +93,10 @@ def strassen(a, b):
     n = len(a)
 
     if n <= THRESHOLD:
-        return standard_matrix_multiply(a, b)
+        return standard_matrix_multiply_caching(a, b)
 
     a11, a12, a21, a22 = partition(a)
-    b11, b12, b21, b22 = partition(a)
+    b11, b12, b21, b22 = partition(b)
 
     p1 = strassen(a11, subtract(b12, b22))
     p2 = strassen(add(a11, a12), b22)
@@ -87,6 +110,32 @@ def strassen(a, b):
     c12 = add(p1, p2)
     c21 = add(p3, p4)
     c22 = subtract(subtract(add(p5, p1), p3), p7)
+
+    # c12 = subtract(a21, a11)
+    # c21 = add(b11, b12)
+    # c22 = strassen(c12, c21)
+    # c12 = subtract(a12, a22)
+    # c21 = add(b21, b22)
+    # c11 = strassen(c12, c21)
+    # c12 = add(a11, a22)
+    # c21 = add(b11, b22)
+    # temp1 = strassen(c12, c21)
+    # c11 = add(temp1, c11)
+    # c22 = add(temp1, c22)
+    # temp2 = add(a21, a22)
+    # c21 = strassen(temp2, b11)
+    # c22 = subtract(c22, c21)
+    # temp1 = subtract(b21, b11)
+    # temp2 = strassen(a22, temp1)
+    # c21 = add(c21, temp2)
+    # c11 = add(c11, temp2)
+    # temp1 = subtract(b12, b22)
+    # c12 = strassen(a11, temp1)
+    # c22 = add(c22, c12)
+    # temp2 = add(a11, a12)
+    # temp1 = strassen(temp2, b22)
+    # c12 = add(c12, temp1)
+    # c11 = subtract(c11, temp1)
 
     # Construct the final matrix
     c = []
@@ -124,30 +173,79 @@ def pad(a):
     # Calculate the number of extra rows/columns to be added
     delta = m - n
 
-    # Extend the existing rows with zeros
-    for i in range(n):
-        a[i].extend([0] * delta)
+    if delta > 0:
+        # Extend the existing rows with zeros
+        for i in range(n):
+            a[i].extend([0] * delta)
 
-    # Add rows of zeros
-    for i in range(delta):
-        a.append([0] * m)
+        # Add rows of zeros
+        for i in range(delta):
+            a.append([0] * m)
 
     return a
 
 
+def run(d):
+    a = []
+    b = []
+
+    for i in range(d):
+        row = []
+        for j in range(d):
+            row.append(random.randint(0, 2))
+        a.append(row)
+
+    for i in range(d):
+        row = []
+        for j in range(d):
+            row.append(random.randint(0, 2))
+        b.append(row)
+
+    a = [[0, 1, 2, 2, 1, 2],
+         [2, 1, 0, 1, 1, 2],
+         [2, 2, 2, 1, 0, 2],
+         [1, 0, 2, 2, 0, 1],
+         [2, 1, 0, 1, 0, 1],
+         [2, 2, 1, 1, 0, 1]]
+
+    b = [[0, 1, 2, 1, 0, 0],
+         [1, 0, 2, 0, 1, 2],
+         [1, 0, 0, 1, 1, 2],
+         [1, 2, 1, 2, 2, 2],
+         [0, 2, 1, 2, 0, 0],
+         [0, 1, 1, 2, 2, 2]]
+
+
+
+    a = pad(a)
+    b = pad(b)
+
+    c = strassen(a, b)
+
+    d = len(a)
+    for i in range(d):
+        for j in range(d):
+            print(c[i][j], end=' ')
+        print('')
 
 
 if __name__ == '__main__':
+    # thresholds = []
+    # for i in range(10, 101, 5):
+    #     thresholds.append(i)
+    # dim = [800, 1000, 1200, 1400, 1600, 1800, 2000]
+    #
+    # for d in dim:
+    #     for t in thresholds:
+    #         THRESHOLD = t
+    #         start = time.time()
+    #         run(d)
+    #         end = time.time()
+    #         print(f'{d},{t},{end - start}')
 
     THRESHOLD = 100
+    start = time.time()
+    run(1600)
+    end = time.time()
+    print(f'{1600},{100},{end - start}')
 
-    zeros_large = [0] * 3
-
-    a = [[1, 2, 3], [4, 5, 6]]
-
-    for i in range(2):
-        a.append(zeros_large)
-
-    a[2][0] = 99
-
-    prin
