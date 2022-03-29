@@ -1,8 +1,12 @@
+import sys
 import math
 import random
 import time
 
-def multiply(a, b, c, n, m, idx):
+sys.setrecursionlimit(2000)
+
+
+def standard_multiply(a, b, c, n, m, idx):
     """
     Multiplies two matrices that are z-ordered.
     :param a: input matrix 1
@@ -16,10 +20,12 @@ def multiply(a, b, c, n, m, idx):
 
     if n == m:
         for i in range(m):
+            temp = [a[i * m + k] for k in range(m)]
             for j in range(m):
                 r = 0
                 for k in range(m):
-                    r += a[i * m + k] * b[j + k * m]
+                    # r += a[i * m + k] * b[j + k * m]
+                    r += temp[k] * b[j + k * m]
                 c[idx] += r
                 idx += 1
 
@@ -27,40 +33,38 @@ def multiply(a, b, c, n, m, idx):
         p = len(a) // 4
         n = n // 2
 
-        a00 = a[:p]
-        a01 = a[p:2*p]
-        a10 = a[2*p:3*p]
-        a11 = a[3*p:]
+        a11, a12, a21, a22 = partition(a)
+        b11, b12, b21, b22 = partition(a)
 
-        b00 = b[:p]
-        b01 = b[p:2*p]
-        b10 = b[2*p:3*p]
-        b11 = b[3*p:]
-
-        c = multiply(a00, b00, c, n, m, idx)
-        c = multiply(a01, b10, c, n, m, idx)
-        c = multiply(a00, b01, c, n, m, idx + p)
-        c = multiply(a01, b11, c, n, m, idx + p)
-        c = multiply(a10, b00, c, n, m, idx + 2*p)
-        c = multiply(a11, b10, c, n, m, idx + 2*p)
-        c = multiply(a10, b01, c, n, m, idx + 3*p)
-        c = multiply(a11, b11, c, n, m, idx + 3*p)
+        c = standard_multiply(a11, b11, c, n, m, idx)
+        c = standard_multiply(a12, b21, c, n, m, idx)
+        c = standard_multiply(a11, b12, c, n, m, idx + p)
+        c = standard_multiply(a12, b22, c, n, m, idx + p)
+        c = standard_multiply(a21, b11, c, n, m, idx + 2 * p)
+        c = standard_multiply(a22, b21, c, n, m, idx + 2 * p)
+        c = standard_multiply(a21, b12, c, n, m, idx + 3 * p)
+        c = standard_multiply(a22, b22, c, n, m, idx + 3 * p)
 
     return c
 
 
 def add(a, b):
-    c = []
-    for i in range(len(a)):
-        c.append(a[i] + b[i])
-    return c
+    # return [a[i] + b[i] for i in range(len(a))]
+    return [sum(i) for i in zip(a, b)]
+
+    # c = []
+    # for i in range(len(a)):
+    #     c.append(a[i] + b[i])
+    # return c
 
 
 def subtract(a, b):
-    c = []
-    for i in range(len(a)):
-        c.append(a[i] - b[i])
-    return c
+    # return [a[i] - b[i] for i in range(len(a))]
+    return [a_i - b_i for a_i, b_i in zip(a, b)]
+
+    # for i in range(len(a)):
+    #     c.append(a[i] - b[i])
+    # return c
 
 
 def partition(a):
@@ -77,9 +81,8 @@ def strassen(a, b):
     n = get_size(a)
 
     if n <= THRESHOLD:
-        a_len = len(a)
-        c = [0 for i in range(a_len)]
-        return multiply(a, b, c, n, m=THRESHOLD, idx=0)
+        c = [0] * len(a)
+        return standard_multiply(a, b, c, n, m=BASE_CASE, idx=0)
 
     a11, a12, a21, a22 = partition(a)
     b11, b12, b21, b22 = partition(b)
@@ -97,10 +100,7 @@ def strassen(a, b):
     c21 = add(p3, p4)
     c22 = subtract(subtract(add(p5, p1), p3), p7)
 
-    # Construct the final matrix
-    c = c11 + c12 + c21 + c22
-
-    return c
+    return c11 + c12 + c21 + c22
 
 
 def pad(a):
@@ -109,18 +109,20 @@ def pad(a):
     dimension is less than or equal to the threshold. Then, repeatedly doubles the dimension until it hits or exceeds
     the original dimension in order to find the final dimension.
     :param a: matrix to be padded
-    :return: the padded matrix
+    :return: the padded matrix and the size of the base case
     """
 
     n = len(a)
 
     if n <= THRESHOLD:
-        return a
+        return a, n
 
     # Repeatedly divide the dimension until it is less than or equal to the threshold
     m = n
     while m > THRESHOLD:
         m = math.ceil(m/2)
+
+    base_case = m
 
     # Repeatedly double the dimension until it hits or exceeds the original dimension
     while m < n:
@@ -138,7 +140,7 @@ def pad(a):
         for i in range(delta):
             a.append([0] * m)
 
-    return a
+    return a, base_case
 
 
 def z_order(a_1D, a_2D, x, y, n, m):
@@ -182,23 +184,23 @@ def reorder(c, d, n, m, row):
                 d[row + i].append(c[i * m + j])
 
     else:
-        p = len(c) // 4
         n = n // 2
 
-        c00 = c[:p]
-        c01 = c[p:2*p]
-        c10 = c[2*p:3*p]
-        c11 = c[3*p:]
+        c11, c12, c21, c22 = partition(c)
 
-        d = reorder(c00, d, n, m, row)
-        d = reorder(c01, d, n, m, row)
-        d = reorder(c10, d, n, m, row + n)
-        d = reorder(c11, d, n, m, row + n)
+        # c11 = c[:p]
+        # c12 = c[p:2*p]
+        # c21 = c[2*p:3*p]
+        # c22 = c[3*p:]
+
+        d = reorder(c11, d, n, m, row)
+        d = reorder(c12, d, n, m, row)
+        d = reorder(c21, d, n, m, row + n)
+        d = reorder(c22, d, n, m, row + n)
 
     return d
 
-def print_matrix(a):
-    n = len(a)
+def print_matrix(a, n):
     for i in range(n):
         for j in range(n):
             print(a[i][j], end=' ')
@@ -207,74 +209,95 @@ def print_matrix(a):
 def get_size(a):
     return int(math.sqrt(len(a)))
 
-def run(d):
-    # a_2D = []
-    # b_2D = []
+def run(d, t):
+    a_2D = []
+    b_2D = []
+
+    for i in range(d):
+        row = []
+        for j in range(d):
+            row.append(random.randint(0, 2))
+        a_2D.append(row)
+
+    for i in range(d):
+        row = []
+        for j in range(d):
+            row.append(random.randint(0, 2))
+        b_2D.append(row)
+
+    # a_2D = [[0, 1, 3, 2, 1, 2, 3, 1],
+    #      [2, 1, 0, 3, 1, 2, 3, 1],
+    #      [2, 3, 2, 1, 0, 2, 3, 1],
+    #      [1, 0, 2, 2, 3, 1, 3, 1],
+    #      [3, 1, 0, 1, 0, 1, 3, 1],
+    #      [2, 2, 1, 1, 0, 3, 3, 1],
+    #      [2, 1, 0, 3, 1, 2, 3, 1],
+    #      [2, 3, 2, 1, 0, 2, 3, 1]]
     #
-    # for i in range(d):
-    #     row = []
-    #     for j in range(d):
-    #         row.append(random.randint(0, 2))
-    #     a_2D.append(row)
-    #
-    # for i in range(d):
-    #     row = []
-    #     for j in range(d):
-    #         row.append(random.randint(0, 2))
-    #     b_2D.append(row)
+    # b_2D = [[3, 1, 2, 1, 0, 3, 2, 0],
+    #      [1, 0, 3, 3, 1, 2, 2, 0],
+    #      [1, 3, 0, 1, 1, 3, 2, 0],
+    #      [3, 2, 1, 2, 3, 2, 2, 0],
+    #      [0, 3, 1, 2, 3, 0, 2, 0],
+    #      [3, 1, 1, 3, 2, 2, 2, 0],
+    #      [3, 1, 2, 1, 0, 3, 2, 0],
+    #      [1, 0, 3, 3, 1, 2, 2, 0]]
 
-    a_2D = [[0, 1, 3, 2, 1, 2, 3, 1],
-         [2, 1, 0, 3, 1, 2, 3, 1],
-         [2, 3, 2, 1, 0, 2, 3, 1],
-         [1, 0, 2, 2, 3, 1, 3, 1],
-         [3, 1, 0, 1, 0, 1, 3, 1],
-         [2, 2, 1, 1, 0, 3, 3, 1],
-         [2, 1, 0, 3, 1, 2, 3, 1],
-         [2, 3, 2, 1, 0, 2, 3, 1]]
+    global THRESHOLD
+    global BASE_CASE
 
-    b_2D = [[3, 1, 2, 1, 0, 3, 2, 0],
-         [1, 0, 3, 3, 1, 2, 2, 0],
-         [1, 3, 0, 1, 1, 3, 2, 0],
-         [3, 2, 1, 2, 3, 2, 2, 0],
-         [0, 3, 1, 2, 3, 0, 2, 0],
-         [3, 1, 1, 3, 2, 2, 2, 0],
-         [3, 1, 2, 1, 0, 3, 2, 0],
-         [1, 0, 3, 3, 1, 2, 2, 0]]
+    THRESHOLD = t
 
+    a_2D, BASE_CASE = pad(a_2D)
+    b_2D, BASE_CASE = pad(b_2D)
 
-    a_2D = pad(a_2D)
-    b_2D = pad(b_2D)
+    # Get the padded dimension
+    padded_d = len(a_2D)
 
     a_1D = []
     b_1D = []
 
-    z_order(a_1D, a_2D, 0, 0, d, m=THRESHOLD)
-    z_order(b_1D, b_2D, 0, 0, d, m=THRESHOLD)
+    # print("\nMATRIX A")
+    # print_matrix(a_2D, d)
+    #
+    # print("\nMATRIX B")
+    # print_matrix(b_2D, d)
+
+    z_order(a_1D, a_2D, 0, 0, padded_d, m=BASE_CASE)
+    z_order(b_1D, b_2D, 0, 0, padded_d, m=BASE_CASE)
 
     c = strassen(a_1D, b_1D)
 
-    c_ordered = [[] for i in range(d)]
-    c_ordered = reorder(c, c_ordered, d, m=THRESHOLD, row=0)
-    print_matrix(c_ordered)
+    # c = [0 for i in range(len(a_1D))]
+    # standard_multiply(a_1D, b_1D, c, padded_d, m=BASE_CASE, idx=0)
+    c_ordered = [[] for i in range(padded_d)]
+    c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
+
+    # c_ordered = [[] for i in range(padded_d)]
+    # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
+
+    print("\nMATRIX C")
+    print_matrix(c_ordered, d)
 
 
 if __name__ == '__main__':
     # thresholds = []
-    # for i in range(10, 101, 5):
+    # for i in range(10, 121, 5):
     #     thresholds.append(i)
-    # dim = [800, 1000, 1200, 1400, 1600, 1800, 2000]
+    # dim = [1000, 1250, 1500, 1750, 2000]
     #
     # for d in dim:
     #     for t in thresholds:
-    #         THRESHOLD = t
     #         start = time.time()
-    #         run(d)
+    #         run(d, t)
     #         end = time.time()
     #         print(f'{d},{t},{end - start}')
 
-    THRESHOLD = 2
+
     start = time.time()
-    run(8)
+    d = 8
+    t = 3
+    run(d, t)
     end = time.time()
-    print(f'{1600},{100},{end - start}')
+    print(f'{d},{t},{end - start}')
 
