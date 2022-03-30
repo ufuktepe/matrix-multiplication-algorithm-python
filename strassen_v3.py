@@ -270,34 +270,34 @@ def run(d, t):
 
     # c = [0 for i in range(len(a_1D))]
     # standard_multiply(a_1D, b_1D, c, padded_d, m=BASE_CASE, idx=0)
-    c_ordered = [[] for i in range(padded_d)]
-    c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
+    # c_ordered = [[] for i in range(padded_d)]
+    # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
 
     # c_ordered = [[] for i in range(padded_d)]
     # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
 
-    print("\nMATRIX C")
-    print_matrix(c_ordered, d)
+    # print("\nMATRIX C")
+    # print_matrix(c_ordered, d)
 
 
 if __name__ == '__main__':
-    # thresholds = []
-    # for i in range(10, 121, 5):
-    #     thresholds.append(i)
-    # dim = [1000, 1250, 1500, 1750, 2000]
-    #
-    # for d in dim:
-    #     for t in thresholds:
-    #         start = time.time()
-    #         run(d, t)
-    #         end = time.time()
-    #         print(f'{d},{t},{end - start}')
+    thresholds = []
+    for i in range(40, 100):
+        thresholds.append(i)
+    dim = [1500]
+
+    for d in dim:
+        for t in thresholds:
+            start = time.time()
+            run(d, t)
+            end = time.time()
+            print(f'{d},{t},{end - start}')
 
 
-    start = time.time()
-    d = 8
-    t = 3
-    run(d, t)
-    end = time.time()
-    print(f'{d},{t},{end - start}')
+    # start = time.time()
+    # d = 8
+    # t = 3
+    # run(d, t)
+    # end = time.time()
+    # print(f'{d},{t},{end - start}')
 
