@@ -5,6 +5,9 @@ import time
 
 sys.setrecursionlimit(2000)
 
+global THRESHOLD
+global BASE_CASE
+
 
 def standard_multiply(a, b, c, n, m, idx):
     """
@@ -243,9 +246,9 @@ def run(d, t):
     #      [3, 1, 2, 1, 0, 3, 2, 0],
     #      [1, 0, 3, 3, 1, 2, 2, 0]]
 
+
     global THRESHOLD
     global BASE_CASE
-
     THRESHOLD = t
 
     a_2D, BASE_CASE = pad(a_2D)
@@ -270,28 +273,65 @@ def run(d, t):
 
     # c = [0 for i in range(len(a_1D))]
     # standard_multiply(a_1D, b_1D, c, padded_d, m=BASE_CASE, idx=0)
-    # c_ordered = [[] for i in range(padded_d)]
-    # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
+    c_ordered = [[] for i in range(padded_d)]
+    c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
 
     # c_ordered = [[] for i in range(padded_d)]
     # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
 
-    # print("\nMATRIX C")
-    # print_matrix(c_ordered, d)
+    print("\nMATRIX C")
+    print_matrix(c_ordered, d)
+
+
+def count_triangles(p):
+    d = 1024
+
+    global THRESHOLD
+    global BASE_CASE
+
+    THRESHOLD = 64
+    BASE_CASE = 64
+
+    a_2D = [[0 for j in range(d)] for i in range(d)]
+
+    for i in range(d-1):
+        for j in range(i+1, d):
+            if random.uniform(0, 1) <= p:
+                a_2D[i][j] = 1
+                a_2D[j][i] = 1
+
+    a_1D = []
+
+    z_order(a_1D, a_2D, 0, 0, d, m=BASE_CASE)
+
+    c = strassen(a_1D, strassen(a_1D, a_1D))
+
+    c_ordered = [[] for i in range(d)]
+    c_ordered = reorder(c, c_ordered, d, m=BASE_CASE, row=0)
+
+    sum = 0
+    for i in range(d):
+        sum += c_ordered[i][i]
+        # print(c_ordered[i][i])
+
+    num_of_triangles = sum / 6
+    expectation = d*(d-1)*(d-2)*(p**3) / 6
+    print(f'{num_of_triangles}, {expectation}')
 
 
 if __name__ == '__main__':
-    thresholds = []
-    for i in range(40, 100):
-        thresholds.append(i)
-    dim = [1500]
+    # thresholds = []
+    # for i in range(10, 121, 5):
+    #     thresholds.append(i)
+    # dim = [1000, 1250, 1500, 1750, 2000]
+    #
+    # for d in dim:
+    #     for t in thresholds:
+    #         start = time.time()
+    #         run(d, t)
+    #         end = time.time()
+    #         print(f'{d},{t},{end - start}')
 
-    for d in dim:
-        for t in thresholds:
-            start = time.time()
-            run(d, t)
-            end = time.time()
-            print(f'{d},{t},{end - start}')
 
 
     # start = time.time()
@@ -300,4 +340,10 @@ if __name__ == '__main__':
     # run(d, t)
     # end = time.time()
     # print(f'{d},{t},{end - start}')
+
+    probabilities = [0.01, 0.02, 0.03, 0.04, 0.05]
+
+    for p in probabilities:
+        for i in range(5):
+            count_triangles(p)
 
