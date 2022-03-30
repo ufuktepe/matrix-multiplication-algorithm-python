@@ -21,6 +21,15 @@ def standard_multiply(a, b, c, n, m, idx):
     :return: resultant matrix that is z-ordered
     """
 
+    # if n == m:
+    #     for i in range(m):
+    #         for k in range(m):
+    #             r = a[i * m + k]
+    #             for j in range(m):
+    #                 c[idx + j] += r * b[j + k * m]
+    #         idx += m
+
+
     if n == m:
         for i in range(m):
             temp = [a[i * m + k] for k in range(m)]
@@ -191,11 +200,6 @@ def reorder(c, d, n, m, row):
 
         c11, c12, c21, c22 = partition(c)
 
-        # c11 = c[:p]
-        # c12 = c[p:2*p]
-        # c21 = c[2*p:3*p]
-        # c22 = c[3*p:]
-
         d = reorder(c11, d, n, m, row)
         d = reorder(c12, d, n, m, row)
         d = reorder(c21, d, n, m, row + n)
@@ -219,13 +223,13 @@ def run(d, t):
     for i in range(d):
         row = []
         for j in range(d):
-            row.append(random.randint(0, 2))
+            row.append(random.randint(0, 3))
         a_2D.append(row)
 
     for i in range(d):
         row = []
         for j in range(d):
-            row.append(random.randint(0, 2))
+            row.append(random.randint(0, 3))
         b_2D.append(row)
 
     # a_2D = [[0, 1, 3, 2, 1, 2, 3, 1],
@@ -273,14 +277,14 @@ def run(d, t):
 
     # c = [0 for i in range(len(a_1D))]
     # standard_multiply(a_1D, b_1D, c, padded_d, m=BASE_CASE, idx=0)
-    c_ordered = [[] for i in range(padded_d)]
-    c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
+    # c_ordered = [[] for i in range(padded_d)]
+    # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
 
     # c_ordered = [[] for i in range(padded_d)]
     # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
 
-    print("\nMATRIX C")
-    print_matrix(c_ordered, d)
+    # print("\nMATRIX C")
+    # print_matrix(c_ordered, d)
 
 
 def count_triangles(p):
@@ -334,16 +338,18 @@ if __name__ == '__main__':
 
 
 
-    # start = time.time()
-    # d = 8
-    # t = 3
-    # run(d, t)
-    # end = time.time()
-    # print(f'{d},{t},{end - start}')
+    start = time.time()
+    d = 1000
+    t = 150
+    run(d, t)
+    end = time.time()
+    print(f'{d},{t},{end - start}')
 
-    probabilities = [0.01, 0.02, 0.03, 0.04, 0.05]
+    # probabilities = [0.01, 0.02, 0.03, 0.04, 0.05]
+    #
+    # for p in probabilities:
+    #     for i in range(5):
+    #         count_triangles(p)
 
-    for p in probabilities:
-        for i in range(5):
-            count_triangles(p)
+
 
