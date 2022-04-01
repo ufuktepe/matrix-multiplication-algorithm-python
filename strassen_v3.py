@@ -2,6 +2,7 @@ import sys
 import math
 import random
 import time
+import multiprocessing as mp
 
 sys.setrecursionlimit(2000)
 
@@ -89,8 +90,8 @@ def partition(a):
     return a[:p], a[p:2*p], a[2*p:3*p], a[3*p:]
 
 
-def strassen(a, b):
-    n = get_size(a)
+def strassen(a, b, n):
+    # n = get_size(a)
 
     if n <= THRESHOLD:
         c = [0] * len(a)
@@ -99,13 +100,15 @@ def strassen(a, b):
     a11, a12, a21, a22 = partition(a)
     b11, b12, b21, b22 = partition(b)
 
-    p1 = strassen(a11, subtract(b12, b22))
-    p2 = strassen(add(a11, a12), b22)
-    p3 = strassen(add(a21, a22), b11)
-    p4 = strassen(a22, subtract(b21, b11))
-    p5 = strassen(add(a11, a22), add(b11, b22))
-    p6 = strassen(subtract(a12, a22), add(b21, b22))
-    p7 = strassen(subtract(a11, a21), add(b11, b12))
+    n = n // 2
+
+    p1 = strassen(a11, subtract(b12, b22), n)
+    p2 = strassen(add(a11, a12), b22, n)
+    p3 = strassen(add(a21, a22), b11, n)
+    p4 = strassen(a22, subtract(b21, b11), n)
+    p5 = strassen(add(a11, a22), add(b11, b22), n)
+    p6 = strassen(subtract(a12, a22), add(b21, b22), n)
+    p7 = strassen(subtract(a11, a21), add(b11, b12), n)
 
     c11 = add(subtract(add(p5, p4), p2), p6)
     c12 = add(p1, p2)
@@ -258,7 +261,7 @@ def run(d, t):
     a_2D, BASE_CASE = pad(a_2D)
     b_2D, BASE_CASE = pad(b_2D)
 
-    # Get the padded dimension
+    # Size of the padded matrix
     padded_d = len(a_2D)
 
     a_1D = []
@@ -273,7 +276,11 @@ def run(d, t):
     z_order(a_1D, a_2D, 0, 0, padded_d, m=BASE_CASE)
     z_order(b_1D, b_2D, 0, 0, padded_d, m=BASE_CASE)
 
-    c = strassen(a_1D, b_1D)
+    c = strassen(a_1D, b_1D, padded_d)
+
+
+    # c = [0] * len(a_1D)
+    # standard_multiply(a_1D, b_1D, c, n=get_size(a_1D), m=get_size(a_1D), idx=0)
 
     # c = [0 for i in range(len(a_1D))]
     # standard_multiply(a_1D, b_1D, c, padded_d, m=BASE_CASE, idx=0)
@@ -286,70 +293,124 @@ def run(d, t):
     # print("\nMATRIX C")
     # print_matrix(c_ordered, d)
 
+    return padded_d
 
-def count_triangles(p):
-    d = 1024
 
-    global THRESHOLD
-    global BASE_CASE
+def count_triangles(probabilities):
 
-    THRESHOLD = 64
-    BASE_CASE = 64
+    for p in probabilities:
+        d = 1024
 
-    a_2D = [[0 for j in range(d)] for i in range(d)]
+        global THRESHOLD
+        global BASE_CASE
 
-    for i in range(d-1):
-        for j in range(i+1, d):
-            if random.uniform(0, 1) <= p:
-                a_2D[i][j] = 1
-                a_2D[j][i] = 1
+        THRESHOLD = 31
+        BASE_CASE = 16
 
-    a_1D = []
+        a_2D = [[0 for j in range(d)] for i in range(d)]
 
-    z_order(a_1D, a_2D, 0, 0, d, m=BASE_CASE)
+        for i in range(d-1):
+            for j in range(i+1, d):
+                if random.uniform(0, 1) <= p:
+                    a_2D[i][j] = 1
+                    a_2D[j][i] = 1
 
-    c = strassen(a_1D, strassen(a_1D, a_1D))
+        a_1D = []
 
-    c_ordered = [[] for i in range(d)]
-    c_ordered = reorder(c, c_ordered, d, m=BASE_CASE, row=0)
+        z_order(a_1D, a_2D, 0, 0, d, m=BASE_CASE)
 
-    sum = 0
-    for i in range(d):
-        sum += c_ordered[i][i]
-        # print(c_ordered[i][i])
+        c = strassen(a_1D, strassen(a_1D, a_1D, d), d)
 
-    num_of_triangles = sum / 6
-    expectation = d*(d-1)*(d-2)*(p**3) / 6
-    print(f'{num_of_triangles}, {expectation}')
+        c_ordered = [[] for i in range(d)]
+        c_ordered = reorder(c, c_ordered, d, m=BASE_CASE, row=0)
+
+        sum = 0
+        for i in range(d):
+            sum += c_ordered[i][i]
+            # print(c_ordered[i][i])
+
+        num_of_triangles = sum / 6
+        expectation = d*(d-1)*(d-2)*(p**3) / 6
+        print(f'{num_of_triangles}, {expectation}')
+
+
+def run_mp(sub_tuples):
+
+    for single_tuple in sub_tuples:
+        t = single_tuple[0]
+        d = single_tuple[1]
+        start = time.time()
+        padded_d = run(d, t)
+        end = time.time()
+        print(f'{d},{t}, {padded_d}, {BASE_CASE}, {end - start}')
 
 
 if __name__ == '__main__':
-    # thresholds = []
-    # for i in range(10, 121, 5):
-    #     thresholds.append(i)
-    # dim = [1000, 1250, 1500, 1750, 2000]
+    # input_tuples = [[(64, 1024), (8, 1024), (64, 1024), (8, 1024), (16, 1024), (8, 1024)],
+    #                 [(32, 1024), (16, 1024), (32, 1024), (16, 1024), (8, 1024), (16, 1024)],
+    #                 [(16, 1024), (32, 1024), (8, 1024), (8, 1024), (16, 1024), (8, 1024)],
+    #                 [(8, 1024), (64, 1024), (16, 1024), (16, 1024), (8, 1024), (16, 1024)]]
+    # sub_tuples = []
+
+    # visited_bc = set()
+    # for i in range(9, 83):
     #
+    #     if i in visited_bc:
+    #         continue
+    #
+    #     size = i
+    #
+    #     while size <= 1024:
+    #         size = size * 2
+    #
+    #     bc = i
+    #
+    #     while bc <= 167:
+    #         sub_tuples.append((bc, size))
+    #         visited_bc.add(bc)
+    #         bc = bc * 2
+    #
+    #         if len(sub_tuples) == 30:
+    #             input_tuples.append(sub_tuples)
+    #             sub_tuples = []
+
+    # # Multiprocessing
+    # pool = mp.Pool(processes=len(input_tuples))
+    # output_async = [pool.apply_async(func=run_mp, args=(sub_tuples,)) for sub_tuples in input_tuples]
+    # output = [x.get() for x in output_async]
+
+    # dim = [1920]
+    # thresholds = [15, 30, 15, 30]
     # for d in dim:
     #     for t in thresholds:
     #         start = time.time()
-    #         run(d, t)
+    #         padded_d = run(d, t)
     #         end = time.time()
-    #         print(f'{d},{t},{end - start}')
+    #         print(f'{d},{t}, {padded_d}, {BASE_CASE}, {end - start}')
 
 
+    # for i in range(500, 2001, 100):
+    #     start = time.time()
+    #     d = i
+    #     t = i
+    #     run(d, t)
+    #     end = time.time()
+    #     print(f'{d},{t},{end - start}')
 
-    start = time.time()
-    d = 1000
-    t = 150
-    run(d, t)
-    end = time.time()
-    print(f'{d},{t},{end - start}')
+    probs = [0.01, 0.02, 0.03, 0.04, 0.05]
+    probabilities = []
 
-    # probabilities = [0.01, 0.02, 0.03, 0.04, 0.05]
-    #
-    # for p in probabilities:
-    #     for i in range(5):
-    #         count_triangles(p)
+    for p in probs:
+        sub_list = []
+        for i in range(10):
+            sub_list.append(p)
+        probabilities.append(sub_list)
 
+    # Multiprocessing
+    pool = mp.Pool(processes=len(probabilities))
+    output_async = [pool.apply_async(func=count_triangles, args=(sub_list,)) for sub_list in probabilities]
+    output = [x.get() for x in output_async]
+
+    print('DONE!')
 
 

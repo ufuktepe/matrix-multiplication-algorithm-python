@@ -1,6 +1,7 @@
 import math
 import random
 import time
+import multiprocessing as mp
 
 
 def standard_matrix_multiply(a, b):
@@ -224,28 +225,73 @@ def run(d):
 
     c = strassen(a, b)
 
-    d = len(a)
-    for i in range(d):
-        for j in range(d):
-            print(c[i][j], end=' ')
-        print('')
+    # d = len(a)
+    # for i in range(d):
+    #     for j in range(d):
+    #         print(c[i][j], end=' ')
+    #     print('')
 
+
+def run_mp(sub_tuples):
+
+    for single_tuple in sub_tuples:
+        global THRESHOLD
+        THRESHOLD = single_tuple[0]
+        d = single_tuple[1]
+        start = time.time()
+        padded_d = run(d)
+        end = time.time()
+        print(f'{d},{THRESHOLD}, {padded_d}, {end - start}')
 
 if __name__ == '__main__':
-    thresholds = []
-    for i in range(16, 50):
-        if i % 5 != 0:
-            thresholds.append(i)
+    input_tuples = [[(4, 2048), (8, 2048), (16, 2048), (32, 2048)],
+                    [(64, 2048), (128, 2048), (7, 1792), (14, 1792)],
+                    [(28, 1792), (56, 1792), (112, 1792), (6, 1536)],
+                    [(12, 1536), (24, 1536), (48, 1536), (96, 1536)]]
+    sub_tuples = []
 
-    dim = [2000]
+    # visited_bc = set()
+    # for i in range(4, 83):
+    #
+    #     if i in visited_bc:
+    #         continue
+    #
+    #     size = i
+    #
+    #     while size <= 1024:
+    #         size = size * 2
+    #
+    #     bc = i
+    #
+    #     while bc <= 167:
+    #         sub_tuples.append((bc, size))
+    #         visited_bc.add(bc)
+    #         bc = bc * 2
+    #
+    #         if len(sub_tuples) == 30:
+    #             input_tuples.append(sub_tuples)
+    #             sub_tuples = []
 
-    for d in dim:
-        for t in thresholds:
-            THRESHOLD = t
-            start = time.time()
-            run(d)
-            end = time.time()
-            print(f'{d},{t},{end - start}')
+    # Multiprocessing
+    pool = mp.Pool(processes=len(input_tuples))
+    output_async = [pool.apply_async(func=run_mp, args=(sub_tuples,)) for sub_tuples in input_tuples]
+    output = [x.get() for x in output_async]
+
+
+    # thresholds = []
+    # for i in range(16, 50):
+    #     if i % 5 != 0:
+    #         thresholds.append(i)
+    #
+    # dim = [2000]
+    #
+    # for d in dim:
+    #     for t in thresholds:
+    #         THRESHOLD = t
+    #         start = time.time()
+    #         run(d)
+    #         end = time.time()
+    #         print(f'{d},{t},{end - start}')
 
     # THRESHOLD = 100
     # start = time.time()
