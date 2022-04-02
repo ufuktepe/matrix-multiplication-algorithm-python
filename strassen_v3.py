@@ -22,22 +22,12 @@ def standard_multiply(a, b, c, n, m, idx):
     :return: resultant matrix that is z-ordered
     """
 
-    # if n == m:
-    #     for i in range(m):
-    #         for k in range(m):
-    #             r = a[i * m + k]
-    #             for j in range(m):
-    #                 c[idx + j] += r * b[j + k * m]
-    #         idx += m
-
-
     if n == m:
         for i in range(m):
             temp = [a[i * m + k] for k in range(m)]
             for j in range(m):
                 r = 0
                 for k in range(m):
-                    # r += a[i * m + k] * b[j + k * m]
                     r += temp[k] * b[j + k * m]
                 c[idx] += r
                 idx += 1
@@ -60,25 +50,11 @@ def standard_multiply(a, b, c, n, m, idx):
 
     return c
 
-
 def add(a, b):
-    # return [a[i] + b[i] for i in range(len(a))]
     return [sum(i) for i in zip(a, b)]
 
-    # c = []
-    # for i in range(len(a)):
-    #     c.append(a[i] + b[i])
-    # return c
-
-
 def subtract(a, b):
-    # return [a[i] - b[i] for i in range(len(a))]
     return [a_i - b_i for a_i, b_i in zip(a, b)]
-
-    # for i in range(len(a)):
-    #     c.append(a[i] - b[i])
-    # return c
-
 
 def partition(a):
     """
@@ -91,8 +67,6 @@ def partition(a):
 
 
 def strassen(a, b, n):
-    # n = get_size(a)
-
     if n <= THRESHOLD:
         c = [0] * len(a)
         return standard_multiply(a, b, c, n, m=BASE_CASE, idx=0)
@@ -157,7 +131,6 @@ def pad(a):
 
     return a, base_case
 
-
 def z_order(a_1D, a_2D, x, y, n, m):
     """
     Converts a 2D matrix (list of lists) into a z-ordered (morton-ordered) 1D list.
@@ -216,9 +189,6 @@ def print_matrix(a, n):
             print(a[i][j], end=' ')
         print('')
 
-def get_size(a):
-    return int(math.sqrt(len(a)))
-
 def run(d, t):
     a_2D = []
     b_2D = []
@@ -235,25 +205,6 @@ def run(d, t):
             row.append(random.randint(0, 3))
         b_2D.append(row)
 
-    # a_2D = [[0, 1, 3, 2, 1, 2, 3, 1],
-    #      [2, 1, 0, 3, 1, 2, 3, 1],
-    #      [2, 3, 2, 1, 0, 2, 3, 1],
-    #      [1, 0, 2, 2, 3, 1, 3, 1],
-    #      [3, 1, 0, 1, 0, 1, 3, 1],
-    #      [2, 2, 1, 1, 0, 3, 3, 1],
-    #      [2, 1, 0, 3, 1, 2, 3, 1],
-    #      [2, 3, 2, 1, 0, 2, 3, 1]]
-    #
-    # b_2D = [[3, 1, 2, 1, 0, 3, 2, 0],
-    #      [1, 0, 3, 3, 1, 2, 2, 0],
-    #      [1, 3, 0, 1, 1, 3, 2, 0],
-    #      [3, 2, 1, 2, 3, 2, 2, 0],
-    #      [0, 3, 1, 2, 3, 0, 2, 0],
-    #      [3, 1, 1, 3, 2, 2, 2, 0],
-    #      [3, 1, 2, 1, 0, 3, 2, 0],
-    #      [1, 0, 3, 3, 1, 2, 2, 0]]
-
-
     global THRESHOLD
     global BASE_CASE
     THRESHOLD = t
@@ -268,10 +219,10 @@ def run(d, t):
     b_1D = []
 
     # print("\nMATRIX A")
-    # print_matrix(a_2D, d)
+    # print_diagonal(a_2D, d)
     #
     # print("\nMATRIX B")
-    # print_matrix(b_2D, d)
+    # print_diagonal(b_2D, d)
 
     z_order(a_1D, a_2D, 0, 0, padded_d, m=BASE_CASE)
     z_order(b_1D, b_2D, 0, 0, padded_d, m=BASE_CASE)
@@ -291,7 +242,7 @@ def run(d, t):
     # c_ordered = reorder(c, c_ordered, padded_d, m=BASE_CASE, row=0)
 
     # print("\nMATRIX C")
-    # print_matrix(c_ordered, d)
+    # print_diagonal(c_ordered, d)
 
     return padded_d
 
@@ -327,7 +278,6 @@ def count_triangles(probabilities):
         sum = 0
         for i in range(d):
             sum += c_ordered[i][i]
-            # print(c_ordered[i][i])
 
         num_of_triangles = sum / 6
         expectation = d*(d-1)*(d-2)*(p**3) / 6
@@ -335,7 +285,6 @@ def count_triangles(probabilities):
 
 
 def run_mp(sub_tuples):
-
     for single_tuple in sub_tuples:
         t = single_tuple[0]
         d = single_tuple[1]
