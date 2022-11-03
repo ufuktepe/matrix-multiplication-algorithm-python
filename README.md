@@ -1,5 +1,4 @@
-[Strassen's Divide and Conquer Matrix Multiplication](#Strassen's divide and conquer matrix multiplication)
-===========================
+# *Data Layout Optimization**Strassen's Divide and Conquer Matrix Multiplication*
 
 Implemented the conventional and Strassen's matrix multiplication algorithms for 𝑛 × 𝑛 matrices and determined the optimal cross-over point both analytically and experimentally. For 𝑛 × 𝑛 matrices, the cross-over point between the two algorithms is the value of 𝑛 for which we stop using Strassen's algorithm and switch to conventional matrix multiplication.
 
